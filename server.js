@@ -57,10 +57,12 @@ cors_proxy.createServer({
       '192.168.',
       'fe80::10'
     ];
-    if (excludedHostnamePrefixes.some(p => hostname.startsWith(p))) {
-      throw new Error();
-    }
-    dns.lookup(hostname, {hints: dns.ADDRCONFIG}, callback);
+    dns.lookup(hostname, { hints: dns.ADDRCONFIG }, (err, address, family) => {
+      if (excludedHostnamePrefixes.some(p => address.startsWith(p))) {
+        err = 'ExcludedAddress'
+      }
+      callback(err, address, family);
+    });
   },
 }).listen(port, host, function() {
   console.log('Running CORS Anywhere on ' + host + ':' + port);
