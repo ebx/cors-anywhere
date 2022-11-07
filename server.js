@@ -1,3 +1,5 @@
+var dns = require('dns');
+
 // Listen on a specific host via the HOST environment variable
 var host = process.env.HOST || '0.0.0.0';
 // Listen on a specific port via the PORT environment variable
@@ -23,7 +25,6 @@ var cors_proxy = require('./lib/cors-anywhere');
 cors_proxy.createServer({
   originBlacklist: originBlacklist,
   originWhitelist: originWhitelist,
-  requireHeader: ['origin', 'x-requested-with'],
   checkRateLimit: checkRateLimit,
   removeHeaders: [
     'cookie',
@@ -43,6 +44,22 @@ cors_proxy.createServer({
   httpProxyOptions: {
     // Do not add X-Forwarded-For, etc. headers, because Heroku already adds it.
     xfwd: false,
+  },
+  dnsLookup: function (hostname, callback) {
+    var excludedHostnamePrefixes = [
+      '169.254.',
+      '127.',
+      '0:0:0:0:0:0:0:1',
+      '::1',
+      '10.',
+      '172.16.',
+      '192.168.',
+      'fe80::10'
+    ];
+    if (excludedHostnamePrefixes.some(p => hostname.startsWith(p))) {
+      throw new Error();
+    }
+    dns.lookup(hostname, {hints: dns.ADDRCONFIG}, callback);
   },
 }).listen(port, host, function() {
   console.log('Running CORS Anywhere on ' + host + ':' + port);
