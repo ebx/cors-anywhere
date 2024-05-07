@@ -58,7 +58,7 @@ cors_proxy.createServer({
       'fe80::10'
     ];
     dns.lookup(hostname, { hints: dns.ADDRCONFIG }, (err, address, family) => {
-      if (excludedHostnamePrefixes.some(p => address.startsWith(p))) {
+      if (address && excludedHostnamePrefixes.some(p => address.startsWith(p))) {
         err = 'ExcludedAddress'
       }
       callback(err, address, family);
